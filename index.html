@@ -72,7 +72,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .hero-trust{display:flex;align-items:center;gap:.85rem;flex-wrap:wrap}
 .trust-item{display:flex;align-items:center;gap:.4rem;font-size:.82rem;font-weight:500;color:var(--muted)}
 .trust-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0}
-.hero-right{display:grid;grid-template-rows:1fr 1fr;overflow:hidden}
+.hero-right{display:grid;}
 .hero-img-top{overflow:hidden;position:relative}
 .hero-img-top img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
 .hero-img-top:hover img{transform:scale(1.04)}
@@ -236,11 +236,14 @@ section{padding:5rem 8%}
 /* ─── ABOUT ─── */
 .about{background:var(--cream)}
 .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
-.about-image-stack{position:relative;height:480px}
-.about-img-main{position:absolute;top:0;left:0;width:75%;border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(45,45,45,.18);height:100%}
-.about-img-main img{width:100%;height:100%;object-fit:cover}
-.about-img-sec{position:absolute;bottom:0;right:0;width:55%;border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(45,45,45,.2);border:4px solid var(--cream);height:58%}
-.about-img-sec img{width:100%;height:100%;object-fit:cover}
+.about-image-stack { position:relative; height:auto; }
+.about-img-main { position:relative; width:75%; border-radius:20px; 
+  overflow:hidden; box-shadow:0 12px 40px rgba(45,45,45,.18); }
+.about-img-sec { position:relative; width:55%; border-radius:16px; 
+  overflow:hidden; box-shadow:0 8px 28px rgba(45,45,45,.2); 
+  border:4px solid var(--cream); margin-top:-380px; 
+  margin-left:auto; }
+  .about-img-sec img{width:100%;height:100%;object-fit:cover}
 .about-float{position:absolute;top:-18px;right:22%;font-size:2.8rem;animation:float 3.2s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-10px) rotate(4deg)}}
 .about-copy .section-title{margin-bottom:1rem}
@@ -391,8 +394,8 @@ footer{background:var(--dark);padding:4rem 8% 2.5rem}
 @media(max-width:1024px){
   .hero{grid-template-columns:1fr}
   .hero-left{padding:5rem 8% 3rem}
-  .hero-right{height:300px;grid-template-rows:1fr}
-  .hero-img-bottom{display:none}
+  .hero-right{min-height:50vh !important;padding:16px !important;}
+  .hero-right img:last-child{display:none}
   .how-steps{grid-template-columns:1fr}
   .magic-grid{grid-template-columns:1fr}
   .transform-grid{grid-template-columns:1fr;gap:2rem}
@@ -406,6 +409,8 @@ footer{background:var(--dark);padding:4rem 8% 2.5rem}
   .footer-grid{grid-template-columns:1fr 1fr;gap:2rem}
 }
 @media(max-width:768px){
+  .hero-right{grid-template-columns:1fr !important;min-height:50vh !important;padding:16px !important;}
+  .hero-right img:last-child{display:none}
   section{padding:3.5rem 5%}
   .nav-links,.nav-cta{display:none}
   .nav-ham{display:flex}
@@ -471,14 +476,9 @@ footer{background:var(--dark);padding:4rem 8% 2.5rem}
       <div class="trust-item"><div class="trust-dot"></div>No two alike</div>
     </div>
   </div>
-  <div class="hero-right">
-    <div class="hero-img-top">
-      <img src="images/Girl_holding_blue_monster_doodle.png" alt="Child holding a My Doodly Doodle"/>
-    </div>
-    <div class="hero-img-bottom">
-      <div class="hero-img-sm"><img src="images/blue_monster_doodle.png" alt="Orange monster Doodle"/><div class="hero-img-label">Finished Doodle</div></div>
-      <div class="hero-img-sm"><img src="images/hands_holding_green_monster_doodle.png" alt="Hands holding green Doodle"/><div class="hero-img-label">Handmade 🧶</div></div>
-    </div>
+  <div class="hero-right" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:24px 24px 24px 16px;background:var(--cream);align-items:center;min-height:100vh;">
+    <img src="images/Red_monster_doodle.png" alt="Red monster Doodle" style="width:100%;height:auto;max-height:85vh;object-fit:contain;border-radius:24px;background:white;"/>
+    <img src="images/green_monster_doodle.png" alt="Green monster Doodle" style="width:100%;height:auto;max-height:85vh;object-fit:contain;border-radius:24px;background:white;"/>
   </div>
 </section>
 <div class="stripe"></div>
@@ -692,10 +692,18 @@ footer{background:var(--dark);padding:4rem 8% 2.5rem}
 <section id="about" class="about">
   <div class="about-grid">
     <div class="about-image-stack reveal">
-      <div class="about-img-main"><img src="images/Girl_holding_blue_monster_doodle.png" alt="Child with My Doodly Doodle"/></div>
-      <div class="about-img-sec"><img src="images/green_monster_doodle_construction.png" alt="Crochet parts laid out"/></div>
-      <div class="about-float">🧶</div>
-    </div>
+  <div class="about-img-main">
+    <img src="images/Girl_holding_blue_monster_doodle.png" 
+         alt="Child with My Doodly Doodle"
+         style="width:100%; height:auto; object-fit:contain;"/>
+  </div>
+  <div class="about-img-sec">
+    <img src="images/Blue_monster_drawing.png" 
+         alt="Child's drawing"
+         style="width:100%; height:auto; object-fit:contain;"/>
+  </div>
+  <div class="about-float">🧶</div>
+</div>
     <div class="about-copy reveal reveal-delay-2">
       <div class="section-label">Our story</div>
       <h2 class="section-title">One studio.<br>One maker.<br><span class="teal">One drawing at a time.</span></h2>
