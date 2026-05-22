@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git -C /Users/coopercreative/mydoodly init)",
-      "Bash(git -C /Users/coopercreative/mydoodly add .)"
+      "Bash(git -C /Users/coopercreative/mydoodly add .)",
+      "Bash(git *)"
     ]
   }
 }

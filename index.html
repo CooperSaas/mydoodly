@@ -1068,6 +1068,27 @@ async function submitOrder(){
     }]);
     if(dbErr)throw dbErr;
 
+    // Fire-and-forget email notification
+    fetch('/api/new-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        parent_name:    document.getElementById('f_parent_name').value.trim(),
+        child_name:     document.getElementById('f_child_name').value.trim(),
+        child_age:      document.getElementById('f_child_age').value,
+        doodle_size:    document.getElementById('f_doodle_size').value,
+        email:          email,
+        phone:          phone,
+        city:           city,
+        toy_name:       document.getElementById('f_toy_name').value.trim(),
+        heart_colour:   getSelectedHeart(),
+        character_name: document.getElementById('f_character_name').value.trim(),
+        colour_notes:   document.getElementById('f_colour_notes').value.trim(),
+        extra_notes:    document.getElementById('f_extra_notes').value.trim(),
+        drawing_url:    drawingUrl
+      })
+    });
+
     // Success!
     document.getElementById('formBody').style.display='none';
     document.getElementById('thankYou').style.display='block';

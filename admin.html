@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Doodly — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --coral:  #F1624A;
+      --teal:   #35A8A9;
+      --amber:  #F39D23;
+      --cream:  #F0E9DE;
+      --green:  #4CAF7D;
+      --dark:   #1a1a2e;
+      --card:   #ffffff;
+      --muted:  #6b7280;
+      --border: #e5e0d8;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--cream);
+      min-height: 100vh;
+      color: #2d2d2d;
+    }
+
+    /* ── LOGIN ── */
+    #loginScreen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%);
+    }
+
+    .login-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+
+    .login-logo {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--coral);
+      margin-bottom: .25rem;
+    }
+
+    .login-sub {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .login-card input[type="password"] {
+      width: 100%;
+      padding: .85rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s;
+      margin-bottom: 1rem;
+      text-align: center;
+      letter-spacing: .15em;
+    }
+
+    .login-card input[type="password"]:focus {
+      border-color: var(--teal);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: .9rem;
+      background: var(--coral);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+    }
+
+    .login-btn:hover { background: #d94f39; }
+    .login-btn:active { transform: scale(.98); }
+
+    .login-error {
+      color: var(--coral);
+      font-size: .85rem;
+      margin-top: .75rem;
+      display: none;
+    }
+
+    /* ── DASHBOARD ── */
+    #dashboard { display: none; }
+
+    .top-bar {
+      background: var(--dark);
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,.3);
+    }
+
+    .top-bar-logo {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .top-bar-logo span { color: var(--coral); }
+
+    .logout-btn {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      color: #fff;
+      padding: .45rem .9rem;
+      border-radius: 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size: .82rem;
+      cursor: pointer;
+      transition: background .2s;
+    }
+
+    .logout-btn:hover { background: rgba(255,255,255,.2); }
+
+    .stats-bar {
+      background: var(--dark);
+      padding: 0 1.25rem 1rem;
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-chip {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .4rem .85rem;
+      border-radius: 20px;
+      font-size: .82rem;
+      font-weight: 500;
+    }
+
+    .stat-chip.new    { background: rgba(241,98,74,.18);  color: var(--coral); }
+    .stat-chip.prog   { background: rgba(243,157,35,.18); color: var(--amber); }
+    .stat-chip.ship   { background: rgba(76,175,125,.18); color: var(--green); }
+    .stat-chip.total  { background: rgba(255,255,255,.1); color: rgba(255,255,255,.75); }
+
+    .stat-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .main {
+      padding: 1.25rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .section-heading {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--dark);
+      margin-bottom: 1rem;
+    }
+
+    .order-list { display: flex; flex-direction: column; gap: 1rem; }
+
+    /* ── ORDER CARD ── */
+    .order-card {
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .9rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+
+    .card-date {
+      font-size: .82rem;
+      color: var(--muted);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .3rem .75rem;
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .status-badge.new      { background: #fef0ee; color: var(--coral); }
+    .status-badge.progress { background: #fdf5e8; color: var(--amber); }
+    .status-badge.shipped  { background: #edf7f2; color: var(--green); }
+
+    .card-body { padding: 1.1rem; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .6rem .75rem;
+    }
+
+    @media (min-width: 600px) {
+      .card-grid { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    .field-label {
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      margin-bottom: .15rem;
+    }
+
+    .field-value {
+      font-size: .92rem;
+      font-weight: 500;
+      color: #2d2d2d;
+      word-break: break-word;
+    }
+
+    .field-value a {
+      color: var(--teal);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+    }
+
+    .field-value a:hover { text-decoration: underline; }
+
+    .heart-dot {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      vertical-align: middle;
+      margin-right: .35rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+
+    .notes-row {
+      margin-top: .75rem;
+      padding-top: .75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .notes-row .field-value {
+      font-size: .88rem;
+      font-weight: 400;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .drawing-row {
+      margin-top: .75rem;
+      padding-top: .75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .drawing-thumb {
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .drawing-thumb:hover {
+      transform: scale(1.04);
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    }
+
+    .no-drawing {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 90px; height: 90px;
+      border-radius: 10px;
+      border: 2px dashed var(--border);
+      color: var(--muted);
+      font-size: .75rem;
+      text-align: center;
+    }
+
+    .card-footer {
+      padding: .85rem 1.1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-label {
+      font-size: .8rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .status-select {
+      flex: 1;
+      min-width: 160px;
+      padding: .5rem .75rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-family: 'Outfit', sans-serif;
+      font-size: .88rem;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      transition: border-color .2s;
+      background: #fff;
+    }
+
+    .status-select:focus { border-color: var(--teal); }
+
+    .save-indicator {
+      font-size: .78rem;
+      padding: .3rem .65rem;
+      border-radius: 6px;
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    .save-indicator.saving { opacity: 1; color: var(--amber); }
+    .save-indicator.saved  { opacity: 1; color: var(--green); }
+    .save-indicator.error  { opacity: 1; color: var(--coral); }
+
+    /* ── EMPTY / LOADING ── */
+    .state-msg {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+
+    .state-msg .icon { font-size: 2.5rem; margin-bottom: .75rem; }
+    .state-msg p { font-size: .95rem; }
+
+    /* ── LIGHTBOX ── */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.85);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    #lightbox.open { display: flex; }
+
+    #lightbox img {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    }
+
+    #lightbox .close-lb {
+      position: absolute;
+      top: 1rem; right: 1.25rem;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+      line-height: 1;
+      opacity: .8;
+    }
+
+    #lightbox .close-lb:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">My Doodly 🧶</div>
+    <div class="login-sub">Admin Dashboard</div>
+    <input type="password" id="pwInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="loginError">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="dashboard">
+
+  <div class="top-bar">
+    <div class="top-bar-logo">My <span>Doodly</span> — Orders</div>
+    <button class="logout-btn" onclick="doLogout()">Log out</button>
+  </div>
+
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-chip total"><span class="stat-dot" style="background:rgba(255,255,255,.5)"></span><span id="statTotal">—</span> total</div>
+    <div class="stat-chip new"><span class="stat-dot" style="background:var(--coral)"></span><span id="statNew">—</span> new</div>
+    <div class="stat-chip prog"><span class="stat-dot" style="background:var(--amber)"></span><span id="statProg">—</span> in progress</div>
+    <div class="stat-chip ship"><span class="stat-dot" style="background:var(--green)"></span><span id="statShip">—</span> shipped</div>
+  </div>
+
+  <div class="main">
+    <div class="section-heading">All Orders</div>
+    <div class="order-list" id="orderList">
+      <div class="state-msg"><div class="icon">⏳</div><p>Loading orders…</p></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── LIGHTBOX ── -->
+<div id="lightbox" onclick="closeLightbox()">
+  <span class="close-lb">✕</span>
+  <img id="lightboxImg" src="" alt="Drawing"/>
+</div>
+
+<script>
+const SUPABASE_URL  = 'https://vvubqaeqcyysvbfzhnbk.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2dWJxYWVxY3l5c3ZiZnpobmJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0MzE4MTgsImV4cCI6MjA5NTAwNzgxOH0.-D5w4oXRjPneoqHvLnSHc0yKkXOeqmBM-N92HnIUdbE';
+const ADMIN_PASS    = 'mydoodly2026';
+const SESSION_KEY   = 'md_admin_auth';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ── AUTH ── */
+function doLogin() {
+  const val = document.getElementById('pwInput').value;
+  if (val === ADMIN_PASS) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    showDashboard();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('pwInput').value = '';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('pwInput').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+function showDashboard() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  loadOrders();
+}
+
+/* ── HELPERS ── */
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function statusClass(s) {
+  if (!s) return 'new';
+  const v = s.toLowerCase();
+  if (v === 'shipped') return 'shipped';
+  if (v === 'in progress') return 'progress';
+  return 'new';
+}
+
+function statusLabel(s) {
+  if (!s) return 'New';
+  const v = s.toLowerCase();
+  if (v === 'shipped') return 'Shipped';
+  if (v === 'in progress') return 'In Progress';
+  return 'New';
+}
+
+const HEART_COLOURS = {
+  red: '#E74C3C', pink: '#FF69B4', purple: '#9B59B6',
+  blue: '#3498DB', yellow: '#F1C40F', orange: '#FF8C00',
+  green: '#4CAF7D', white: '#e0e0e0',
+};
+
+function heartColourHex(name) {
+  if (!name) return '#ccc';
+  return HEART_COLOURS[name.toLowerCase().trim()] || '#ccc';
+}
+
+function waLink(number) {
+  if (!number) return null;
+  const clean = number.replace(/\D/g, '');
+  const num = clean.startsWith('0') ? '62' + clean.slice(1) : clean;
+  return `https://wa.me/${num}`;
+}
+
+function field(label, value) {
+  return `
+    <div>
+      <div class="field-label">${label}</div>
+      <div class="field-value">${value || '<span style="color:#ccc">—</span>'}</div>
+    </div>`;
+}
+
+function buildCard(order) {
+  const sc   = statusClass(order.status);
+  const sl   = statusLabel(order.status);
+  const wa   = waLink(order.whatsapp || order.phone || order.wa_number);
+  const hHex = heartColourHex(order.heart_colour || order.heart_color);
+
+  const parentField = wa
+    ? `<a href="${wa}" target="_blank">📱 ${order.parent_name || '—'}</a>`
+    : (order.parent_name || '—');
+
+  const waField = wa
+    ? `<a href="${wa}" target="_blank">${order.whatsapp || order.phone || order.wa_number}</a>`
+    : (order.whatsapp || order.phone || order.wa_number || '—');
+
+  const heartVal = `<span class="heart-dot" style="background:${hHex}"></span>${order.heart_colour || order.heart_color || '—'}`;
+
+  const drawingUrl = order.drawing_url || order.drawing_image || order.image_url;
+  const drawingHtml = drawingUrl
+    ? `<img class="drawing-thumb" src="${drawingUrl}" alt="Drawing" onclick="openLightbox('${drawingUrl.replace(/'/g,"\\'")}')"/>`
+    : `<div class="no-drawing">No image</div>`;
+
+  const colourNotes = order.colour_notes || order.color_notes || '';
+  const extraNotes  = order.extra_notes  || order.notes || '';
+
+  return `
+  <div class="order-card" id="card-${order.id}">
+    <div class="card-header">
+      <div class="card-date">📅 ${formatDate(order.created_at)}</div>
+      <div class="status-badge ${sc}" id="badge-${order.id}">${sl}</div>
+    </div>
+    <div class="card-body">
+      <div class="card-grid">
+        ${field('Parent', parentField)}
+        ${field('WhatsApp', waField)}
+        ${field('Child', order.child_name || '—')}
+        ${field('Age', order.child_age ? order.child_age + ' yrs' : '—')}
+        ${field('Size', order.doodle_size || order.size || '—')}
+        ${field('Toy name', order.toy_name || order.doodle_name || '—')}
+        <div>
+          <div class="field-label">Heart colour</div>
+          <div class="field-value">${heartVal}</div>
+        </div>
+      </div>
+      ${colourNotes || extraNotes ? `
+      <div class="notes-row">
+        ${colourNotes ? `<div class="field-label">Colour notes</div><div class="field-value">${colourNotes}</div>` : ''}
+        ${extraNotes  ? `<div class="field-label" style="margin-top:.5rem">Extra notes</div><div class="field-value">${extraNotes}</div>` : ''}
+      </div>` : ''}
+      <div class="drawing-row">
+        <div class="field-label" style="margin-bottom:.5rem">Drawing</div>
+        ${drawingHtml}
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="footer-label">Update status:</div>
+      <select class="status-select" onchange="updateStatus('${order.id}', this)">
+        <option value="New"         ${sl==='New'         ? 'selected':''}>🆕 New</option>
+        <option value="In Progress" ${sl==='In Progress' ? 'selected':''}>🔧 In Progress</option>
+        <option value="Shipped"     ${sl==='Shipped'     ? 'selected':''}>📦 Shipped</option>
+      </select>
+      <span class="save-indicator" id="ind-${order.id}"></span>
+    </div>
+  </div>`;
+}
+
+/* ── LOAD ORDERS ── */
+async function loadOrders() {
+  const list = document.getElementById('orderList');
+  list.innerHTML = '<div class="state-msg"><div class="icon">⏳</div><p>Loading orders…</p></div>';
+
+  const { data, error } = await sb
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    list.innerHTML = `<div class="state-msg"><div class="icon">⚠️</div><p>Could not load orders.<br><small>${error.message}</small></p></div>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    list.innerHTML = '<div class="state-msg"><div class="icon">📭</div><p>No orders yet. They will appear here when customers submit.</p></div>';
+    updateStats([]);
+    return;
+  }
+
+  list.innerHTML = data.map(buildCard).join('');
+  updateStats(data);
+}
+
+function updateStats(orders) {
+  const total = orders.length;
+  const nNew  = orders.filter(o => statusClass(o.status) === 'new').length;
+  const nProg = orders.filter(o => statusClass(o.status) === 'progress').length;
+  const nShip = orders.filter(o => statusClass(o.status) === 'shipped').length;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statNew').textContent   = nNew;
+  document.getElementById('statProg').textContent  = nProg;
+  document.getElementById('statShip').textContent  = nShip;
+}
+
+/* ── UPDATE STATUS ── */
+async function updateStatus(id, selectEl) {
+  const newStatus = selectEl.value;
+  const ind = document.getElementById(`ind-${id}`);
+
+  ind.textContent = 'Saving…';
+  ind.className = 'save-indicator saving';
+
+  const { error } = await sb
+    .from('orders')
+    .update({ status: newStatus })
+    .eq('id', id);
+
+  if (error) {
+    ind.textContent = 'Error!';
+    ind.className = 'save-indicator error';
+  } else {
+    ind.textContent = '✓ Saved';
+    ind.className = 'save-indicator saved';
+
+    const badge = document.getElementById(`badge-${id}`);
+    const sc = statusClass(newStatus);
+    badge.textContent = statusLabel(newStatus);
+    badge.className = `status-badge ${sc}`;
+
+    setTimeout(() => { ind.className = 'save-indicator'; }, 2500);
+
+    /* refresh stats */
+    const allSelects = [...document.querySelectorAll('.status-select')];
+    const mockOrders = allSelects.map(s => ({ status: s.value }));
+    updateStats(mockOrders);
+  }
+}
+
+/* ── LIGHTBOX ── */
+function openLightbox(url) {
+  document.getElementById('lightboxImg').src = url;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightboxImg').src = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+/* ── INIT ── */
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  showDashboard();
+}
+</script>
+</body>
+</html>
